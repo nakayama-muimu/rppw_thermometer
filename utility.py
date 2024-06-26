@@ -38,7 +38,7 @@ def ntp_sync(show_info=False):
     ntptime.settime()
     JST_OFFSET = 9 * 60 * 60 # 9h (= 32400s)
     ut = utime.localtime(utime.time() + JST_OFFSET)
-    rtc.datetime(ut[0], ut[1], ut[2], ut[6]+1, ut[3], ut[4], ut[5], 0)
+    rtc.datetime( (ut[0], ut[1], ut[2], ut[6]+1, ut[3], ut[4], ut[5], 0) )
     if(show_info):
         print(f"After sync:")
         print(utime.localtime())

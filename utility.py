@@ -17,7 +17,7 @@ def connect_wifi(ssid='', key='', max_trial=20, show_info=False):
         if counter == max_trial:
             if show_info:
                 print('Can not connect to WiFi')
-            return False, _
+            return False, None
         utime.sleep(1)
     
     wlan_status = wlan.ifconfig()

@@ -9,7 +9,7 @@ from secrets import WIFI, IOT_CORE
 import thermometer
 
 DEBUG = True
-INTERVAL = 300 # sec
+INTERVAL = 300 * 1000 # 300 seconds
 
 # Define light (Onboard Green LED) and set its default state to off
 light = machine.Pin("LED", machine.Pin.OUT)
@@ -27,6 +27,7 @@ if DEBUG:
 t = util.ntp_sync()
 # Sync again when the day changes
 day = t[2]
+day = -1
 if DEBUG:
     print(f"ntp_sync done. {t}")
 
@@ -86,8 +87,12 @@ if DEBUG:
     print('MQTT subscription started.')
 
 # Main loop as Timer callback
+
+# Prepare timer
+timer = machine.Timer(-1)
+
 # To check temperature every 5 minutes
-def access_iot(timer):
+def access_iot(param):
     # Publish the temperature
     tmpr = thermometer.read_temperature()
     time_str = util.get_iso_datetime_string()
@@ -103,15 +108,22 @@ def access_iot(timer):
     ut = utime.localtime()
     global day
     if ut[2] != day:
+        global timer
+        # Stop timer
+        timer.deinit()
+        # NTP sync
         util.ntp_sync()
         ut = utime.localtime()
         day = ut[2]
+        # Set timer anew
+        timer = machine.Timer(-1)
+        timer.init(mode=machine.Timer.PERIODIC, period=INTERVAL, callback=access_iot)
+
         print(f"NTP sync done. {util.get_iso_datetime_string()}")
 
 # First publish before the invoke by timer
 access_iot(None)
 
 # Set timer
-timer = machine.Timer(-1)
-timer.init(mode=machine.Timer.PERIODIC, period=INTERVAL * 1000, callback=access_iot)
+timer.init(mode=machine.Timer.PERIODIC, period=INTERVAL, callback=access_iot)
 
